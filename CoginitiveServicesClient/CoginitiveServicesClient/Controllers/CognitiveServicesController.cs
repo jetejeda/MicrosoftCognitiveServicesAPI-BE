@@ -8,17 +8,18 @@ using System.Threading.Tasks;
 
 namespace CoginitiveServicesClient.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
     public class CognitiveServicesController : ControllerBase
     {
+        [HttpGet]
+        [Route("/")]
         public IActionResult Get()
         {
             return Ok("File upload running API");
         }
 
         [HttpPost]
-        [Route("getRelationship")]
+        [Route("/getRelationship")]
         public IActionResult Upload(IFormCollection data, IFormFile image1, IFormFile image2)
         {
             try

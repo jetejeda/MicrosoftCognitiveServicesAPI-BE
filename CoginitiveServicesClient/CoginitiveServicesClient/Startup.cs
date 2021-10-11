@@ -24,12 +24,21 @@ namespace CoginitiveServicesClient
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSwaggerGen(config =>
+            {
+                config.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "CognitiveServicesClientAPI",
+                    Version = "v1"
+                });
+            });
             services.AddControllers();
 
             services.AddCors(c =>
             {
                 c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
             });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,6 +49,8 @@ namespace CoginitiveServicesClient
                 app.UseDeveloperExceptionPage();
             }
             app.UseCors(options => options.AllowAnyOrigin());
+
+            app.UseSwagger();
 
             app.UseRouting();
 
