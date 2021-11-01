@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CoginitiveServicesClient.Services;
 using Microsoft.Azure.CognitiveServices.Vision.Face;
 using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
 
@@ -12,32 +13,35 @@ namespace CoginitiveServicesClient
 {
     public static class CognitiveServicesAux
     {
-        public static Bitmap Base64ToImage (string base64String)
+        public static string GetKinship(double cognitiveServicesResult)
         {
-            // Convert base 64 string to byte[]
-            byte[] imageBytes = Convert.FromBase64String(base64String);
-            // Convert byte[] to Image
-            using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+            if (cognitiveServicesResult <= 20)
             {
-                var image = (Bitmap)Bitmap.FromStream(ms, true);
-                return image;
+                return "ninguno";
+            }
+            else if (cognitiveServicesResult <= 40)
+            {
+                return "primos lejanos";
+            }
+            else if (cognitiveServicesResult <= 60)
+            {
+                return "primos o tíos";
+            }
+            else if (cognitiveServicesResult <= 80)
+            {
+                return "hermanos";
+            }
+            else if (cognitiveServicesResult <= 90)
+            {
+                return "papá - mamá / hijo";
+            }
+            else
+            {
+                return "la misma persona";
             }
         }
 
-        public static Stream ToStream(this Image image, ImageFormat format)
-        {
-            var stream = new System.IO.MemoryStream();
-            image.Save(stream, format);
-            stream.Position = 0;
-            return stream;
-        }
 
-        // Recognition model 4 was released in 2021 February.
-        // It is recommended since its accuracy is improved
-        // on faces wearing masks compared with model 3,
-        // and its overall accuracy is improved compared
-        // with models 1 and 2.
-        const string RECOGNITION_MODEL4 = RecognitionModel.Recognition04;
         public static async Task<double> GetRelationship (Bitmap imageOne, Bitmap imageTwo)
         {
             const string SUBSCRIPTION_KEY = "e938e0743b224d8fbe79fdc152e079dd";
@@ -47,7 +51,7 @@ namespace CoginitiveServicesClient
             IFaceClient client = Authenticate(ENDPOINT, SUBSCRIPTION_KEY);
 
 
-            var cognitiveServicesResult = await FindSimilar(client, imageOne, imageTwo, RECOGNITION_MODEL4);
+            var cognitiveServicesResult = await FindSimilar(client, imageOne, imageTwo, RecognitionModel.Recognition04);
             return cognitiveServicesResult;
         }
 
@@ -66,10 +70,10 @@ namespace CoginitiveServicesClient
             // Detect faces from image one and save GUID.
 
             var streamImageOne = new MemoryStream();
-            var pngImageOne = ConvertToPng(imageOne);
+            var pngImageOne = ImageOperations.ConvertToPng(imageOne);
             pngImageOne.Save(streamImageOne, ImageFormat.Png);
             streamImageOne.Position = 0;
-            var faces = await DetectFaceRecognizeWithStream(client, streamImageOne, recognition_model);
+            var faces = await DetectFaceRecognizeWithStream(client, streamImageOne, RecognitionModel.Recognition04);
             streamImageOne.Dispose();
 
             if (faces.Count == 0)
@@ -83,7 +87,7 @@ namespace CoginitiveServicesClient
             // Detect faces from source image two.
            
             var streamImageTwo = new MemoryStream();
-            var pngImageTwo = ConvertToPng(imageTwo);
+            var pngImageTwo = ImageOperations.ConvertToPng(imageTwo);
             pngImageTwo.Save(streamImageTwo, ImageFormat.Png);
             streamImageTwo.Position = 0;
             IList<DetectedFace> detectedFaces = await DetectFaceRecognizeWithStream(client, streamImageTwo, recognition_model);            
@@ -107,21 +111,6 @@ namespace CoginitiveServicesClient
         {   
             IList<DetectedFace> detectedFaces = await faceClient.Face.DetectWithStreamAsync(image, recognitionModel: recognition_model, detectionModel: DetectionModel.Detection03);
             return detectedFaces.ToList();
-        }
-
-        static Image ConvertToPng(Image imageToConvert)
-        {
-            Image bmpNewImage = new Bitmap(imageToConvert.Width,
-                                      imageToConvert.Height);
-            Graphics gfxNewImage = Graphics.FromImage(bmpNewImage);
-            gfxNewImage.DrawImage(imageToConvert,
-                                  new Rectangle(0, 0, bmpNewImage.Width,
-                                                bmpNewImage.Height),
-                                  0, 0,
-                                  imageToConvert.
-                                  Width, imageToConvert.Height,
-                                  GraphicsUnit.Pixel);
-            return bmpNewImage;
         }
     }
 }

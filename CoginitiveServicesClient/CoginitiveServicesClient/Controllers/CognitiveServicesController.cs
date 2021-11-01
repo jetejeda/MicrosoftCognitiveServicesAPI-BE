@@ -27,21 +27,24 @@ namespace CoginitiveServicesClient.Controllers
         [Route("/getRelationship")]
         public async Task<IActionResult> ProcessPayment()
         {
-            string rawValue = string.Empty;
-            var data = new DataModel();
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
-            {
-                rawValue = await reader.ReadToEndAsync();
-                data = JsonConvert.DeserializeObject<DataModel>(rawValue);
-            }
-
             try
             {
-                var imageOne = CognitiveServicesAux.Base64ToImage(data.Image1);
-                var imageTwo = CognitiveServicesAux.Base64ToImage(data.Image2);
+                string rawValue = string.Empty;
+                var data = new DataModel();
+                using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+                {
+                    rawValue = await reader.ReadToEndAsync();
+                    data = JsonConvert.DeserializeObject<DataModel>(rawValue);
+                }
+
+                var imageOne = ImageOperations.Base64ToImage(data.Image1);
+                var imageTwo = ImageOperations.Base64ToImage(data.Image2);               
                 var kinshipPercentage = await CognitiveServicesAux.GetRelationship(imageOne, imageTwo) * 100;
-                var kinship = ImageOperations.GetKinship(kinshipPercentage);
-                return Ok("La similitud es: " + kinshipPercentage + "% El parentesco entre las personas es de " + kinship);
+                kinshipPercentage = Math.Round(kinshipPercentage,2);
+                var kinship = CognitiveServicesAux.GetKinship(kinshipPercentage);
+                var textAnswer = "La similitud es: " + kinshipPercentage + "% El parentesco entre las personas es de " + kinship;
+                var imageResult = ImageOperations.AssembleAnswerImage(imageOne, imageTwo, textAnswer);
+                return Ok(ImageOperations.ImageToBase64(imageResult));
             }
             catch (Exception e)
             {
