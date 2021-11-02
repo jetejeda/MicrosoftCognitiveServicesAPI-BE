@@ -14,7 +14,7 @@ namespace CoginitiveServicesClient
     public static class CognitiveServicesAux
     {
         public static string GetKinship(double cognitiveServicesResult)
-        {
+        {            
             if (cognitiveServicesResult <= 20)
             {
                 return "ninguno";
