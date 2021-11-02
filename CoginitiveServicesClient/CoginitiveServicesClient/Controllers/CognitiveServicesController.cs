@@ -55,31 +55,23 @@ namespace CoginitiveServicesClient.Controllers
                 var textAnswer = "La similitud es: " + kinshipPercentage + "% El parentesco entre las personas es de " + kinship;
                 var imageResult = ImageOperations.AssembleAnswerImage(imageOne, imageTwo, textAnswer);
                 var imageResultBase64 = ImageOperations.ImageToBase64(imageResult);
-                if (Convert.ToBoolean(data.SendToEmail))
-                {
-                    MemoryStream ms = new MemoryStream();
-                    context.Imagenes.Add(new ImagenesModel { 
-                            ImageData = Convert.FromBase64String(imageResultBase64)
-                    });
-                    context.SaveChanges();
 
-                    var lastElement = await context.Imagenes.OrderByDescending(x => x.Id).FirstOrDefaultAsync();
+                MemoryStream ms = new MemoryStream();
+                context.Imagenes.Add(new ImagenesModel { 
+                        ImageData = Convert.FromBase64String(imageResultBase64)
+                });
+                context.SaveChanges();
 
-                    return Ok(new AnswerModel { 
-                            Answer = imageResultBase64,
-                            Id = lastElement.Id
-                    });
-                }
+                var lastElement = await context.Imagenes.OrderByDescending(x => x.Id).FirstOrDefaultAsync();
 
-
-                return Ok(new AnswerModel
-                {
-                    Answer = imageResultBase64
+                return Ok(new AnswerModel { 
+                        Answer = imageResultBase64,
+                        Id = lastElement.Id
                 });
             }
             catch (Exception e)
             {
-                return BadRequest("Datos incorrectos");
+                return BadRequest(e.ToString());
             }
         }
 
@@ -100,7 +92,7 @@ namespace CoginitiveServicesClient.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest("Datos incorrectos");
+                return BadRequest(e.ToString());
             }
         }
     }
