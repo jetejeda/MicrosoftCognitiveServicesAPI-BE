@@ -22,7 +22,6 @@ namespace CoginitiveServicesClient
         }
 
         public IConfiguration Configuration { get; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -39,12 +38,10 @@ namespace CoginitiveServicesClient
                     Version = "v1"
                 });
             });
-            services.AddControllers();
 
-            services.AddCors(c =>
-            {
-                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
-            });
+            services.AddCors();
+
+            services.AddControllers();
 
         }
 
@@ -55,7 +52,13 @@ namespace CoginitiveServicesClient
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseCors(options => options.AllowAnyOrigin());
+
+            // global cors policy
+            app.UseCors(x => x
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .SetIsOriginAllowed(origin => true) // allow any origin
+                .AllowCredentials()); // allow credentials
 
             app.UseSwagger();
 
